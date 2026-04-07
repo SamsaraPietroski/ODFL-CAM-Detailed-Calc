@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Samsara — ODFL Connected Asset Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#00263E;--blue:#0369EA;--blue-dk:#0255c4;--blue-lt:#e8f1fd;
+  --lblue:#77BEFF;--ash:#333333;--snow:#F0F6FE;--white:#fff;
+  --bd:#d0d8e0;--glt:#f4f6f8;--tp:#00263E;--ts:#333;--th:#6b7f8e;
+  --rad:8px;--radlg:12px;--sh:0 1px 3px rgba(0,38,62,.08),0 1px 2px rgba(0,38,62,.05);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--snow);color:var(--tp);min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+input,select{font-family:'Inter',sans-serif;font-size:13px;border:1.5px solid var(--bd);border-radius:var(--rad);padding:7px 10px;background:var(--white);color:var(--tp);outline:none;transition:border-color .15s,box-shadow .15s;width:100%}
+input:focus,select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(3,105,234,.12)}
+button{font-family:'Inter',sans-serif;cursor:pointer;transition:all .15s}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--bd);border-radius:3px}
+
+.topbar{background:var(--navy);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.25)}
+.tlogo{display:flex;flex-direction:column;gap:3px}
+.wm{font-size:18px;font-weight:300;color:var(--white);letter-spacing:.01em;line-height:1}
+.ws{font-size:10px;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.06em}
+.tright{display:flex;align-items:center;gap:10px}
+.tbadge{background:var(--blue);color:#fff;font-size:11px;padding:4px 12px;border-radius:20px;font-weight:600;border:none}
+
+/* SCENARIO PILLS */
+.scbar{padding:10px 28px;background:var(--white);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pill{padding:4px 16px;font-size:13px;font-weight:500;border-radius:20px;border:1.5px solid var(--bd);background:var(--white);color:var(--ts)}
+.pill.on{background:var(--navy);border-color:var(--navy);color:var(--white)}
+.pill:hover:not(.on){border-color:var(--blue);color:var(--blue)}
+.sc-desc{font-size:12px;color:var(--th);margin-left:4px}
+
+.tabs{background:var(--white);border-bottom:1px solid var(--bd);padding:0 28px;display:flex;overflow-x:auto}
+.tb{padding:11px 16px;font-size:13px;font-weight:400;border:none;border-bottom:2.5px solid transparent;background:transparent;color:var(--th);white-space:nowrap;margin-bottom:-1px;cursor:pointer}
+.tb:hover{color:var(--navy)}
+.tb.on{color:var(--navy);border-bottom-color:var(--blue);font-weight:600}
+
+.con{max-width:1100px;margin:0 auto;padding:22px 28px}
+.section-panel{display:none}
+.section-panel.active{display:block}
+
+.card{background:var(--white);border:1px solid var(--bd);border-radius:var(--radlg);padding:18px 22px;box-shadow:var(--sh);margin-bottom:14px}
+.csnow{background:var(--snow);border:1px solid #dce6f0;border-radius:var(--radlg);padding:14px 18px;margin-bottom:14px}
+.ctitle{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:12px}
+.stitle{font-size:12px;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.06em;margin:16px 0 10px;padding-bottom:5px;border-bottom:2px solid var(--blue)}
+
+.fg{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:12px}
+.fl label{display:block;font-size:12px;font-weight:500;color:var(--ts);margin-bottom:4px}
+.fn{font-size:10px;color:var(--th);margin-top:3px}
+
+.kgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:var(--white);border:1px solid var(--bd);border-radius:var(--radlg);padding:14px 16px;box-shadow:var(--sh)}
+.klbl{font-size:10px;font-weight:600;color:var(--th);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px}
+.kval{font-size:22px;font-weight:700;line-height:1;letter-spacing:-.02em;color:var(--navy)}
+
+.summary-bar{background:var(--blue-lt);border:1px solid #b8d4f8;border-radius:var(--radlg);padding:16px 20px;margin-bottom:16px}
+.summary-bar .stitle{margin-top:0;border-bottom-color:var(--blue)}
+.summary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px}
+.sf{display:flex;flex-direction:column;gap:4px}
+.sf label{font-size:11px;font-weight:500;color:var(--blue-dk)}
+.sf input{border:1.5px solid #b8d4f8;border-radius:var(--rad);padding:6px 9px;font-size:13px;font-weight:600;color:var(--navy);background:var(--white)}
+.sf input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(3,105,234,.12)}
+
+.callout{border-left:3px solid var(--blue);background:var(--blue-lt);border-radius:0 var(--radlg) var(--radlg) 0;padding:10px 14px;margin-bottom:14px}
+.callout strong{font-size:12px;font-weight:700;color:var(--navy);display:block;margin-bottom:3px}
+.callout span{font-size:12px;color:var(--ash)}
+
+/* METRICS TABLE */
+.metrics-table{width:100%;border-collapse:collapse;background:var(--white);border-radius:var(--radlg);overflow:hidden;border:1px solid var(--bd);box-shadow:var(--sh);margin-bottom:14px}
+.metrics-table th{background:var(--navy);color:#fff;padding:10px 14px;font-size:11px;font-weight:600;text-align:left;letter-spacing:.04em}
+.metrics-table th.r{text-align:right}
+.metrics-table td{padding:8px 14px;font-size:13px;border-bottom:1px solid var(--snow);vertical-align:middle;color:var(--ts)}
+.metrics-table tr:last-child td{border-bottom:none}
+.metrics-table tr:hover td{background:#fafcff}
+.metrics-table tr.group-hdr td{background:var(--blue-lt);font-weight:700;color:var(--navy);font-size:11px;padding:7px 14px;text-transform:uppercase;letter-spacing:.06em}
+.metrics-table tr.subrow td{background:var(--glt)}
+.metrics-table tr.subrow td:first-child{padding-left:30px;font-size:12px;color:var(--th)}
+.metrics-table td input{width:100%;border:1.5px solid var(--bd);border-radius:var(--rad);padding:5px 9px;font-size:13px;text-align:right;background:transparent;font-family:'Inter',sans-serif;color:var(--tp)}
+.metrics-table td input:focus{outline:none;border-color:var(--blue);background:var(--white);box-shadow:0 0 0 3px rgba(3,105,234,.12)}
+.metrics-table td input.override{border-color:var(--blue);background:var(--blue-lt);color:var(--navy);font-weight:600}
+
+/* BENCHMARK CELL — two-line con/base display */
+.bench-cell{text-align:right;white-space:nowrap}
+.bench-val{font-size:13px;font-weight:600;color:var(--navy)}
+.bench-range{font-size:10px;color:var(--th);margin-top:1px}
+.bench-con{color:var(--th)}
+.bench-base{color:var(--blue-dk)}
+
+.odfl-cell{text-align:right}
+.note-cell{text-align:right;font-size:11px}
+.confirmed{color:var(--blue);font-weight:600}
+.second-order{color:var(--th);font-style:italic}
+.metric-name{font-weight:500;color:var(--ts)}
+.metric-name.dim{color:var(--th)}
+
+.toggle-row{cursor:pointer;user-select:none}
+.toggle-row td:first-child::before{content:'▶  ';font-size:9px;color:var(--blue);font-weight:700}
+.toggle-row.open td:first-child::before{content:'▼  '}
+.collapse-wrap{display:none}
+.collapse-wrap.open{display:table-row-group}
+
+.badge{display:inline-block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;border-radius:4px;padding:2px 7px;white-space:nowrap}
+.bnavy{background:var(--snow);color:var(--navy)}
+.bblue{background:var(--blue-lt);color:var(--blue-dk)}
+
+.legend-row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:11px;color:var(--th);margin-bottom:12px}
+.legend-item{display:flex;align-items:center;gap:5px}
+.ldot{width:10px;height:10px;border-radius:2px}
+
+.actions{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+.rbtn{font-size:12px;padding:5px 12px;border:1.5px solid var(--bd);border-radius:var(--rad);background:var(--white);color:var(--ts);font-family:'Inter',sans-serif}
+.rbtn:hover{border-color:var(--blue);color:var(--blue)}
+
+.foot{text-align:center;font-size:11px;color:var(--th);padding:18px 28px 30px;max-width:1100px;margin:0 auto}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="tlogo">
+    <div class="wm">samsara</div>
+    <div class="ws">Connected Asset Management &nbsp;·&nbsp; Old Dominion Freight Line</div>
+  </div>
+  <div class="tright">
+    <span class="tbadge">CONFIDENTIAL</span>
+  </div>
+</div>
+
+<!-- SCENARIO BAR -->
+<div class="scbar">
+  <button class="pill on" id="pill-con" onclick="setScenario('conservative')">Conservative</button>
+  <button class="pill" id="pill-base" onclick="setScenario('base')">Base</button>
+  <span class="sc-desc" id="sc-desc">Lower-bound benchmark — cautious view of industry performance</span>
+</div>
+
+<div class="tabs">
+  <button class="tb on" onclick="showTab('fleet',this)">Fleet Profile</button>
+  <button class="tb" onclick="showTab('resource',this)">Resource & Capacity</button>
+  <button class="tb" onclick="showTab('warranty',this)">Warranty</button>
+  <button class="tb" onclick="showTab('vendor',this)">Vendor Management</button>
+  <button class="tb" onclick="showTab('capital',this)">Capital Planning</button>
+  <button class="tb" onclick="showTab('downtime',this)">Downtime & Availability</button>
+  <button class="tb" onclick="showTab('sap',this)">SAP Conversion</button>
+</div>
+
+<div class="con">
+
+<!-- ══ FLEET PROFILE ══ -->
+<div id="tab-fleet" class="section-panel active">
+  <div class="callout">
+    <strong>From discovery call (Apr 2, 2026)</strong>
+    <span>~11,000 powered assets (incl. switchers) · ~50,000 trailers/other equipment · Fleet type: Heavy duty · ~500 in-house technicians · Tech burden rate: $45/hr</span>
+  </div>
+  <div class="card">
+    <div class="ctitle">Power Units</div>
+    <div class="fg">
+      <div class="fl"><label>Tractors</label><input type="number" id="fl_tractors" value="10500" oninput="updateFleet()"></div>
+      <div class="fl"><label>Switchers / Yard Dogs</label><input type="number" id="fl_switchers" value="500" oninput="updateFleet()"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Trailers</div>
+    <div class="fg">
+      <div class="fl"><label>Trailers (Total)</label><input type="number" id="fl_trailers" value="50000" oninput="updateFleet()"></div>
+      <div class="fl"><label>53' Trailers</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>48' Trailers</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>28' Trailers</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>w/ Lift Gates</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>w/o Lift Gates</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>w/ Moffett Lifts</label><input type="number" placeholder="0"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Other Vehicles & Material Handling</div>
+    <div class="fg">
+      <div class="fl"><label>Straight Trucks</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Manager Vehicles</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Sales Team Vehicles</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Forklifts (Total)</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Gas Forklifts</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Electric Forklifts</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Forklift Batteries</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Pallet Jacks (Total)</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Manual Pallet Jacks</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Electric Pallet Jacks</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Dollies</label><input type="number" placeholder="0"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ctitle">Shops & Staff</div>
+    <div class="fg">
+      <div class="fl"><label>Major Shops</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Minor Shops</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Techs (Total)</label><input type="number" id="fl_techs" value="500" oninput="updateFleet()"></div>
+      <div class="fl"><label>A Techs</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>B Techs</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>C Techs</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Field Mechanics</label><input type="number" placeholder="0"></div>
+      <div class="fl"><label>Tech Burden Rate ($/hr)</label><input type="number" id="fl_burden" value="45"><div class="fn">Confirmed on call: $45/hr</div></div>
+    </div>
+  </div>
+  <div class="kgrid">
+    <div class="kpi" style="border-top:3px solid var(--blue)"><div class="klbl">Total Powered Assets</div><div class="kval" id="total_powered">11,000</div></div>
+    <div class="kpi" style="border-top:3px solid var(--navy)"><div class="klbl">Total All Assets</div><div class="kval" id="total_assets">61,000</div></div>
+    <div class="kpi" style="border-top:3px solid var(--lblue)"><div class="klbl">Total Techs</div><div class="kval" id="total_techs">500</div></div>
+    <div class="kpi" style="border-top:3px solid var(--bd)"><div class="klbl">Assets per Tech</div><div class="kval" id="assets_per_tech">122.0</div></div>
+    <div class="kpi" style="border-top:3px solid var(--navy)"><div class="klbl">Fleet Type</div><div class="kval" style="font-size:15px">Heavy Duty</div></div>
+  </div>
+</div>
+
+<!-- ══ RESOURCE & CAPACITY ══ -->
+<div id="tab-resource" class="section-panel">
+  <div class="callout">
+    <strong>Priority 1 — Biggest gap vs. market. Lead with this in executive presentations.</strong>
+    <span>~500 in-house techs · $45/hr burden rate · 3x outsourced labor premium · 10% wrench time improvement target · 20% of total spend is addressable outsourced work · Technician retention removed from primary ROI (2nd-order effect)</span>
+  </div>
+  <div class="summary-bar">
+    <div class="stitle">High-level summary</div>
+    <div class="summary-grid">
+      <div class="sf"><label>Total technicians (in-house)</label><input type="text" value="500"></div>
+      <div class="sf"><label>Tech burden rate ($/hr)</label><input type="text" value="$45.00"></div>
+      <div class="sf"><label>Total direct wrench time (hrs/wk)</label><input type="text" placeholder="Enter"></div>
+      <div class="sf"><label>Technician utilization (%)</label><input type="text" placeholder="Enter"></div>
+      <div class="sf"><label>Outsourced labor rate premium</label><input type="text" value="3x in-house"></div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="legend-row">
+      <div class="legend-item"><div class="ldot" style="background:var(--snow);border:1px solid var(--bd)"></div> Industry benchmark (scenario-adjusted)</div>
+      <div class="legend-item"><div class="ldot" style="background:var(--blue-lt);border:1px solid #b8d4f8"></div> ODFL override</div>
+      <div class="legend-item"><span class="badge bblue">confirmed</span> Confirmed on call</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="rbtn" onclick="expandAll()">Expand all</button>
+      <button class="rbtn" onclick="collapseAll()">Collapse all</button>
+    </div>
+  </div>
+  <table class="metrics-table">
+    <thead><tr>
+      <th style="width:36%">Metric</th>
+      <th class="r" style="width:18%">Industry benchmark</th>
+      <th class="r" style="width:15%">ODFL actual</th>
+      <th class="r" style="width:11%">Unit</th>
+      <th class="r" style="width:10%">Status</th>
+    </tr></thead>
+    <tbody>
+      <tr class="group-hdr"><td colspan="5">Shop counts</td></tr>
+      <tr><td class="metric-name">Large shops</td><td class="bench-cell" data-con="3–5" data-base="6–10"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">count</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Small shops</td><td class="bench-cell" data-con="5–10" data-base="10–20"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">count</td><td class="note-cell">—</td></tr>
+      <tr class="group-hdr"><td colspan="5">Wrench time</td></tr>
+      <tr><td class="metric-name">Total direct wrench time</td><td class="bench-cell" data-con="55%" data-base="65%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">% of shift</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">A work wrench time</td><td class="bench-cell" data-con="50%" data-base="60%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">hrs/wk</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">B work wrench time</td><td class="bench-cell" data-con="55%" data-base="65%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">hrs/wk</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">C work wrench time</td><td class="bench-cell" data-con="60%" data-base="70%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">hrs/wk</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Total indirect time</td><td class="bench-cell" data-con="35%" data-base="25%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">% of shift</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Wrench time improvement target</td><td class="bench-cell" data-con="8%" data-base="12%"></td><td class="odfl-cell"><input type="text" value="10%" class="override" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr class="group-hdr"><td colspan="5">Technician headcount</td></tr>
+      <tr><td class="metric-name">Number of technicians (in-house)</td><td class="bench-cell" data-con="3.5 / 100" data-base="4.5 / 100"></td><td class="odfl-cell"><input type="text" value="500" class="override" oninput="markOverride(this)"></td><td class="bench-cell">#</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">A technicians (total)</td><td class="bench-cell" data-con="25%" data-base="35%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">% of techs</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">B technicians (total)</td><td class="bench-cell" data-con="40%" data-base="45%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">% of techs</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">C technicians (total)</td><td class="bench-cell" data-con="25%" data-base="30%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">% of techs</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Techs per 100 powered assets</td><td class="bench-cell" data-con="3.5" data-base="4.5"></td><td class="odfl-cell"><input type="text" value="4.5" class="override" oninput="markOverride(this)"></td><td class="bench-cell">#/100</td><td class="note-cell">—</td></tr>
+      <tr class="group-hdr"><td colspan="5">Hourly rates</td></tr>
+      <tr><td class="metric-name">Tech burden rate (avg.)</td><td class="bench-cell" data-con="$26.00" data-base="$32.00"></td><td class="odfl-cell"><input type="text" value="$45.00" class="override" oninput="markOverride(this)"></td><td class="bench-cell">$/hr</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">A technician hourly rate</td><td class="bench-cell" data-con="$32.00" data-base="$40.00"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/hr</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">B technician hourly rate</td><td class="bench-cell" data-con="$24.00" data-base="$30.00"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/hr</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">C technician hourly rate</td><td class="bench-cell" data-con="$18.00" data-base="$24.00"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/hr</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Outsourced labor rate vs. in-house</td><td class="bench-cell" data-con="2x" data-base="3x"></td><td class="odfl-cell"><input type="text" value="3x" class="override" oninput="markOverride(this)"></td><td class="bench-cell">multiple</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr class="group-hdr"><td colspan="5">Technician utilization</td></tr>
+      <tr><td class="metric-name">Technician utilization (overall)</td><td class="bench-cell" data-con="65%" data-base="78%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">A tech utilization</td><td class="bench-cell" data-con="72%" data-base="85%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">B tech utilization</td><td class="bench-cell" data-con="68%" data-base="80%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">C tech utilization</td><td class="bench-cell" data-con="60%" data-base="72%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr class="toggle-row" onclick="toggleGroup('tech_util_class',this)"><td class="metric-name" colspan="5">Technician utilization by work class <span class="badge bblue" style="margin-left:8px">expandable</span></td></tr>
+    </tbody>
+    <tbody class="collapse-wrap" id="tech_util_class">
+      <tr class="subrow"><td>A tech on A work</td><td class="bench-cell" data-con="55%" data-base="68%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td>—</td></tr>
+      <tr class="subrow"><td>A tech on B work</td><td class="bench-cell" data-con="18%" data-base="22%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td>—</td></tr>
+      <tr class="subrow"><td>A tech on C work</td><td class="bench-cell" data-con="20%" data-base="10%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td>—</td></tr>
+      <tr class="subrow"><td>B tech on A work</td><td class="bench-cell" data-con="15%" data-base="8%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td>—</td></tr>
+      <tr class="subrow"><td>B tech on B work</td><td class="bench-cell" data-con="62%" data-base="74%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td>—</td></tr>
+      <tr class="subrow"><td>B tech on C work</td><td class="bench-cell" data-con="23%" data-base="18%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td>—</td></tr>
+      <tr class="subrow"><td>C tech on A work</td><td class="bench-cell" data-con="8%" data-base="3%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td>—</td></tr>
+      <tr class="subrow"><td>C tech on B work</td><td class="bench-cell" data-con="30%" data-base="20%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td>—</td></tr>
+      <tr class="subrow"><td>C tech on C work</td><td class="bench-cell" data-con="62%" data-base="77%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td>—</td></tr>
+    </tbody>
+    <tbody>
+      <tr class="group-hdr"><td colspan="5">Outsource mix & addressability</td></tr>
+      <tr><td class="metric-name">% maintenance outsourced</td><td class="bench-cell" data-con="25%" data-base="35%"></td><td class="odfl-cell"><input type="text" value="50%" class="override" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">% outsourced — unaddressable</td><td class="bench-cell" data-con="35%" data-base="25%"></td><td class="odfl-cell"><input type="text" value="30% of outsourced" class="override" oninput="markOverride(this)"></td><td class="bench-cell">% of outsourced</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">% outsourced — addressable to bring in-house</td><td class="bench-cell" data-con="10%" data-base="20%"></td><td class="odfl-cell"><input type="text" value="20% of total" class="override" oninput="markOverride(this)"></td><td class="bench-cell">% of total</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr class="group-hdr"><td colspan="5">Retention — deprioritized (2nd-order ROI, add later)</td></tr>
+      <tr><td class="metric-name dim">Technician turnover rate</td><td class="bench-cell" data-con="15%" data-base="25%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%/yr</td><td class="note-cell second-order">2nd order</td></tr>
+      <tr><td class="metric-name dim">Avg. cost to onboard</td><td class="bench-cell" data-con="$14,000" data-base="$22,000"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/tech</td><td class="note-cell second-order">2nd order</td></tr>
+      <tr><td class="metric-name dim">Avg. open technician headcount</td><td class="bench-cell" data-con="3%" data-base="8%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">% of workforce</td><td class="note-cell second-order">2nd order</td></tr>
+      <tr><td class="metric-name dim">Tech training & development spend</td><td class="bench-cell" data-con="$1,800" data-base="$3,200"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/tech/yr</td><td class="note-cell second-order">2nd order</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ WARRANTY ══ -->
+<div id="tab-warranty" class="section-panel">
+  <div class="callout">
+    <strong>Priority 2 — Second biggest gap vs. market.</strong>
+    <span>RM spend: $350M · Parts: ~$130M · Capital/acquisition: ~$350M/yr · Combined basis: ~$500M · Eligible: ~4% of $350M = ~$14–15M/yr · Current recovery: &lt;$2M (~14%) · Target: 80% · OEM accrual: ~3% over 5-yr term · Parts warranty: 1 yr</span>
+  </div>
+  <div class="summary-bar">
+    <div class="stitle">High-level summary</div>
+    <div class="summary-grid">
+      <div class="sf"><label>Total maintenance RM spend ($)</label><input type="text" value="$350,000,000"></div>
+      <div class="sf"><label>Parts spend ($)</label><input type="text" value="$130,000,000"></div>
+      <div class="sf"><label>Capital / acquisition spend ($)</label><input type="text" value="$350,000,000"></div>
+      <div class="sf"><label>Combined fleet spend basis ($)</label><input type="text" value="$500,000,000"></div>
+      <div class="sf"><label>Warranty-eligible maintenance ($)</label><input type="text" value="~$14–15M"></div>
+      <div class="sf"><label>Current warranty recovery ($)</label><input type="text" value="&lt;$2M"></div>
+      <div class="sf"><label>Target recovery rate (%)</label><input type="text" value="80%"></div>
+    </div>
+  </div>
+  <table class="metrics-table">
+    <thead><tr><th style="width:36%">Metric</th><th class="r" style="width:18%">Industry benchmark</th><th class="r" style="width:15%">ODFL actual</th><th class="r" style="width:11%">Unit</th><th class="r" style="width:10%">Status</th></tr></thead>
+    <tbody>
+      <tr class="group-hdr"><td colspan="5">Spend basis</td></tr>
+      <tr><td class="metric-name">Total maintenance RM spend</td><td class="bench-cell" data-con="—" data-base="—"></td><td class="odfl-cell"><input type="text" value="$350,000,000" class="override"></td><td class="bench-cell">$</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Parts spend (subset of RM)</td><td class="bench-cell" data-con="30%" data-base="40%"></td><td class="odfl-cell"><input type="text" value="$130,000,000" class="override"></td><td class="bench-cell">% of RM</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Annual capital / acquisition spend</td><td class="bench-cell" data-con="—" data-base="—"></td><td class="odfl-cell"><input type="text" value="$350,000,000" class="override"></td><td class="bench-cell">$</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr class="group-hdr"><td colspan="5">OEM warranty terms</td></tr>
+      <tr><td class="metric-name">Fleet renewal rate</td><td class="bench-cell" data-con="8%/yr" data-base="12%/yr"></td><td class="odfl-cell"><input type="text" value="~10%" class="override"></td><td class="bench-cell">%/yr</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">OEM warranty term</td><td class="bench-cell" data-con="3 yrs" data-base="5 yrs"></td><td class="odfl-cell"><input type="text" value="5 years" class="override"></td><td class="bench-cell">years</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Asset depreciation period</td><td class="bench-cell" data-con="6 yrs" data-base="9 yrs"></td><td class="odfl-cell"><input type="text" value="9 years" class="override"></td><td class="bench-cell">years</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">% of fleet with active factory warranty</td><td class="bench-cell" data-con="30%" data-base="50%"></td><td class="odfl-cell"><input type="text" value="~50%" class="override"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">OEM warranty accrual rate</td><td class="bench-cell" data-con="2%" data-base="3.5%"></td><td class="odfl-cell"><input type="text" value="3%" class="override"></td><td class="bench-cell">% of purchase</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr class="group-hdr"><td colspan="5">Parts warranty</td></tr>
+      <tr><td class="metric-name">Parts warranty term (standard)</td><td class="bench-cell" data-con="90 days" data-base="1 year"></td><td class="odfl-cell"><input type="text" value="1 year" class="override"></td><td class="bench-cell">term</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Parts warranty accrual rate</td><td class="bench-cell" data-con="1%" data-base="2%"></td><td class="odfl-cell"><input type="text" value="1.5–2%" class="override"></td><td class="bench-cell">% of parts spend</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Annual parts warranty potential</td><td class="bench-cell" data-con="$1–2M" data-base="$3–5M"></td><td class="odfl-cell"><input type="text" value="$3–5M" class="override"></td><td class="bench-cell">$</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr class="group-hdr"><td colspan="5">Eligibility & current performance</td></tr>
+      <tr><td class="metric-name">Warranty-eligible (% of RM spend)</td><td class="bench-cell" data-con="2%" data-base="5%"></td><td class="odfl-cell"><input type="text" value="4%" class="override"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Current recovery rate (% of eligible)</td><td class="bench-cell" data-con="10%" data-base="25%"></td><td class="odfl-cell"><input type="text" value="~14%" class="override"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Target recovery rate (% of eligible)</td><td class="bench-cell" data-con="60%" data-base="85%"></td><td class="odfl-cell"><input type="text" value="80%" class="override"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Incremental recovery opportunity</td><td class="bench-cell" data-con="—" data-base="—"></td><td class="odfl-cell"><input type="text" value="~$8–10M" class="override"></td><td class="bench-cell">$</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr class="group-hdr"><td colspan="5">Denial & approval rates</td></tr>
+      <tr><td class="metric-name">Warranty denied — maintenance history</td><td class="bench-cell" data-con="12%" data-base="5%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">% of claims</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Warranty denied — unapproved shop</td><td class="bench-cell" data-con="8%" data-base="3%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">% of claims</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Warranty approved prior to repair</td><td class="bench-cell" data-con="30%" data-base="55%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">% of claims</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Admin time managing warranty recovery</td><td class="bench-cell" data-con="120 hrs/mo" data-base="60 hrs/mo"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">hrs/mo</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Negotiated savings on new acquisition</td><td class="bench-cell" data-con="0.5%" data-base="2%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">% of purchase</td><td class="note-cell">—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ VENDOR MANAGEMENT ══ -->
+<div id="tab-vendor" class="section-panel">
+  <div class="callout">
+    <strong>Priority 3 — In-house vs. outsourced mix optimization.</strong>
+    <span>Total RM: $350M · 50/50 split · 30% of outsourced unaddressable · 20% of total addressable · Outsourced = ~3x in-house labor rate</span>
+  </div>
+  <div class="summary-bar">
+    <div class="stitle">High-level summary</div>
+    <div class="summary-grid">
+      <div class="sf"><label>Total maintenance spend ($)</label><input type="text" id="hl_total_maint" value="$350,000,000" oninput="syncHL('total_maint',this.value)"></div>
+      <div class="sf"><label>Total outsourced spend ($)</label><input type="text" id="hl_outsourced_spend" value="~$175,000,000" oninput="syncHL('outsourced_spend',this.value)"></div>
+      <div class="sf"><label>% in-house</label><input type="text" value="50%"></div>
+      <div class="sf"><label>% outsourced</label><input type="text" value="50%"></div>
+      <div class="sf"><label>Addressable outsourced work</label><input type="text" value="20% of total"></div>
+      <div class="sf"><label>PM on-time compliance (%)</label><input type="text" placeholder="Enter"></div>
+    </div>
+  </div>
+  <div class="actions">
+    <div class="legend-row">
+      <div class="legend-item"><div class="ldot" style="background:var(--snow);border:1px solid var(--bd)"></div> Industry benchmark (scenario-adjusted)</div>
+      <div class="legend-item"><div class="ldot" style="background:var(--blue-lt);border:1px solid #b8d4f8"></div> ODFL override</div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="rbtn" onclick="expandAll()">Expand all</button>
+      <button class="rbtn" onclick="collapseAll()">Collapse all</button>
+    </div>
+  </div>
+  <table class="metrics-table">
+    <thead><tr><th style="width:36%">Metric</th><th class="r" style="width:18%">Industry benchmark</th><th class="r" style="width:15%">ODFL actual</th><th class="r" style="width:11%">Unit</th><th class="r" style="width:10%">Status</th></tr></thead>
+    <tbody>
+      <tr class="group-hdr"><td colspan="5">Overall spend</td></tr>
+      <tr><td class="metric-name">Total maintenance spend (RM)</td><td class="bench-cell" data-con="—" data-base="—"></td><td class="odfl-cell"><input type="text" id="m_total_maint" value="$350,000,000" class="override" oninput="markOverride(this);syncDetail('total_maint',this.value)"></td><td class="bench-cell">$</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Total outsourced maintenance spend</td><td class="bench-cell" data-con="—" data-base="—"></td><td class="odfl-cell"><input type="text" id="m_outsourced_spend" value="~$175,000,000" class="override" oninput="markOverride(this);syncDetail('outsourced_spend',this.value)"></td><td class="bench-cell">$</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Maintenance cost/mile</td><td class="bench-cell" data-con="$0.14" data-base="$0.19"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/mi</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">% outsourced maintenance</td><td class="bench-cell" data-con="25%" data-base="35%"></td><td class="odfl-cell"><input type="text" value="50%" class="override" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">% outsourced — unaddressable</td><td class="bench-cell" data-con="40%" data-base="25%"></td><td class="odfl-cell"><input type="text" value="30% of outsourced" class="override" oninput="markOverride(this)"></td><td class="bench-cell">% of outsourced</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">% outsourced — addressable to bring in-house</td><td class="bench-cell" data-con="10%" data-base="20%"></td><td class="odfl-cell"><input type="text" value="20% of total" class="override" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Outsourced maintenance rebate</td><td class="bench-cell" data-con="1%" data-base="3%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">% of outsourced</td><td class="note-cell">—</td></tr>
+      <tr class="group-hdr"><td colspan="5">Fault codes & diagnostics</td></tr>
+      <tr><td class="metric-name"># of fault codes (active, monthly)</td><td class="bench-cell" data-con="200 / 100 assets" data-base="120 / 100 assets"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Time spent diagnosing fault codes</td><td class="bench-cell" data-con="60 min" data-base="35 min"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">min/code</td><td class="note-cell">—</td></tr>
+      <tr class="group-hdr"><td colspan="5">Parts inventory</td></tr>
+      <tr><td class="metric-name">Avg. parts inventory value</td><td class="bench-cell" data-con="$1,200/asset" data-base="$800/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Avg. days of inventory</td><td class="bench-cell" data-con="45 days" data-base="25 days"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">days</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Parts availability (% in stock at repair start)</td><td class="bench-cell" data-con="75%" data-base="90%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Parts obsolescence</td><td class="bench-cell" data-con="8%" data-base="3%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">% of inventory</td><td class="note-cell">—</td></tr>
+      <tr class="group-hdr"><td colspan="5">Planned vs. unplanned maintenance</td></tr>
+      <tr><td class="metric-name">% planned maintenance</td><td class="bench-cell" data-con="55%" data-base="75%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">% unplanned maintenance</td><td class="bench-cell" data-con="45%" data-base="25%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">PM on-time compliance rate</td><td class="bench-cell" data-con="78%" data-base="92%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Avg. preventive maintenance cost</td><td class="bench-cell" data-con="$450" data-base="$280"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/event</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Avg. bay utilization</td><td class="bench-cell" data-con="60%" data-base="80%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr class="group-hdr"><td colspan="5">Avg. repair costs by type</td></tr>
+      <tr><td class="metric-name">Avg. roadside breakdown cost</td><td class="bench-cell" data-con="$1,500" data-base="$950"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/event</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Avg. non-safety repair cost</td><td class="bench-cell" data-con="$600" data-base="$380"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Avg. safety critical repair cost</td><td class="bench-cell" data-con="$1,200" data-base="$780"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Avg. major component repair/replacement</td><td class="bench-cell" data-con="$8,500" data-base="$5,200"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Roadside breakdowns (count/yr)</td><td class="bench-cell" data-con="3 / 100 assets" data-base="1.5 / 100 assets"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td class="note-cell">—</td></tr>
+      <tr class="toggle-row" onclick="toggleGroup('rc_inhouse',this)"><td class="metric-name" colspan="5">Repair count — in-house <span class="badge bnavy" style="margin-left:8px">expandable</span></td></tr>
+    </tbody>
+    <tbody class="collapse-wrap" id="rc_inhouse">
+      <tr class="subrow"><td>Total (in-house)</td><td class="bench-cell" data-con="8 / asset" data-base="6 / asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Engine</td><td class="bench-cell" data-con="0.15/asset" data-base="0.08/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Transmission</td><td class="bench-cell" data-con="0.10/asset" data-base="0.06/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Aftertreatment / Emissions</td><td class="bench-cell" data-con="0.40/asset" data-base="0.22/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Cooling</td><td class="bench-cell" data-con="0.30/asset" data-base="0.18/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Fuel</td><td class="bench-cell" data-con="0.25/asset" data-base="0.14/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Electrical</td><td class="bench-cell" data-con="0.50/asset" data-base="0.30/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Battery / Starter / Alternator</td><td class="bench-cell" data-con="0.35/asset" data-base="0.20/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Brakes</td><td class="bench-cell" data-con="1.20/asset" data-base="0.80/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Tires</td><td class="bench-cell" data-con="1.50/asset" data-base="1.00/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Suspension</td><td class="bench-cell" data-con="0.40/asset" data-base="0.25/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Steering</td><td class="bench-cell" data-con="0.20/asset" data-base="0.12/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Axles / Driveline</td><td class="bench-cell" data-con="0.30/asset" data-base="0.18/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Air system</td><td class="bench-cell" data-con="0.45/asset" data-base="0.28/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>HVAC</td><td class="bench-cell" data-con="0.30/asset" data-base="0.18/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Lighting</td><td class="bench-cell" data-con="0.60/asset" data-base="0.35/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Cab / Body / Chassis</td><td class="bench-cell" data-con="0.40/asset" data-base="0.22/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Trailer systems</td><td class="bench-cell" data-con="0.50/asset" data-base="0.30/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Oil</td><td class="bench-cell" data-con="2.00/asset" data-base="2.00/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+    </tbody>
+    <tbody>
+      <tr class="toggle-row" onclick="toggleGroup('rc_out',this)"><td class="metric-name" colspan="5">Repair count — outsourced <span class="badge bnavy" style="margin-left:8px">expandable</span></td></tr>
+    </tbody>
+    <tbody class="collapse-wrap" id="rc_out">
+      <tr class="subrow"><td>Total (outsourced)</td><td class="bench-cell" data-con="3 / asset" data-base="1.5 / asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Engine <span class="badge bnavy" style="margin-left:4px">unaddressable</span></td><td class="bench-cell" data-con="0.12/asset" data-base="0.06/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Transmission <span class="badge bnavy" style="margin-left:4px">unaddressable</span></td><td class="bench-cell" data-con="0.08/asset" data-base="0.04/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Aftertreatment / Emissions</td><td class="bench-cell" data-con="0.20/asset" data-base="0.10/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Cooling</td><td class="bench-cell" data-con="0.15/asset" data-base="0.08/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Brakes</td><td class="bench-cell" data-con="0.40/asset" data-base="0.20/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Tires</td><td class="bench-cell" data-con="0.50/asset" data-base="0.25/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Electrical</td><td class="bench-cell" data-con="0.25/asset" data-base="0.12/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Suspension</td><td class="bench-cell" data-con="0.20/asset" data-base="0.10/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Axles / Driveline</td><td class="bench-cell" data-con="0.18/asset" data-base="0.09/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Cab / Body / Chassis</td><td class="bench-cell" data-con="0.22/asset" data-base="0.11/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+      <tr class="subrow"><td>Trailer systems</td><td class="bench-cell" data-con="0.30/asset" data-base="0.15/asset"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td>—</td></tr>
+    </tbody>
+    <tbody>
+      <tr class="toggle-row" onclick="toggleGroup('ac_inhouse',this)"><td class="metric-name" colspan="5">Avg. cost/repair — in-house <span class="badge bnavy" style="margin-left:8px">expandable</span></td></tr>
+    </tbody>
+    <tbody class="collapse-wrap" id="ac_inhouse">
+      <tr class="subrow"><td>Total avg. (in-house)</td><td class="bench-cell" data-con="$520" data-base="$380"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Engine</td><td class="bench-cell" data-con="$4,200" data-base="$2,800"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Transmission</td><td class="bench-cell" data-con="$3,600" data-base="$2,400"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Aftertreatment / Emissions</td><td class="bench-cell" data-con="$1,800" data-base="$1,100"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Cooling</td><td class="bench-cell" data-con="$850" data-base="$520"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Fuel</td><td class="bench-cell" data-con="$550" data-base="$340"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Electrical</td><td class="bench-cell" data-con="$480" data-base="$300"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Battery / Starter / Alternator</td><td class="bench-cell" data-con="$420" data-base="$260"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Brakes</td><td class="bench-cell" data-con="$380" data-base="$230"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Tires</td><td class="bench-cell" data-con="$600" data-base="$390"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Suspension</td><td class="bench-cell" data-con="$720" data-base="$450"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Steering</td><td class="bench-cell" data-con="$640" data-base="$400"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Axles / Driveline</td><td class="bench-cell" data-con="$1,100" data-base="$700"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Air system</td><td class="bench-cell" data-con="$280" data-base="$170"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>HVAC</td><td class="bench-cell" data-con="$440" data-base="$280"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Lighting</td><td class="bench-cell" data-con="$125" data-base="$80"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Cab / Body / Chassis</td><td class="bench-cell" data-con="$940" data-base="$580"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Trailer systems</td><td class="bench-cell" data-con="$400" data-base="$250"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Oil</td><td class="bench-cell" data-con="$110" data-base="$70"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+    </tbody>
+    <tbody>
+      <tr class="toggle-row" onclick="toggleGroup('ac_out',this)"><td class="metric-name" colspan="5">Avg. cost/repair — outsourced <span class="badge bnavy" style="margin-left:8px">expandable</span></td></tr>
+    </tbody>
+    <tbody class="collapse-wrap" id="ac_out">
+      <tr class="subrow"><td>Total avg. (outsourced)</td><td class="bench-cell" data-con="$950" data-base="$620"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Engine <span class="badge bnavy" style="margin-left:4px">unaddressable</span></td><td class="bench-cell" data-con="$7,000" data-base="$4,500"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Transmission <span class="badge bnavy" style="margin-left:4px">unaddressable</span></td><td class="bench-cell" data-con="$6,000" data-base="$3,800"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Aftertreatment / Emissions</td><td class="bench-cell" data-con="$2,800" data-base="$1,700"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Cooling</td><td class="bench-cell" data-con="$1,280" data-base="$800"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Electrical</td><td class="bench-cell" data-con="$760" data-base="$480"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Brakes</td><td class="bench-cell" data-con="$550" data-base="$340"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Tires</td><td class="bench-cell" data-con="$890" data-base="$560"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Suspension</td><td class="bench-cell" data-con="$1,070" data-base="$670"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Steering</td><td class="bench-cell" data-con="$930" data-base="$580"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Axles / Driveline</td><td class="bench-cell" data-con="$1,760" data-base="$1,100"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Cab / Body / Chassis</td><td class="bench-cell" data-con="$1,430" data-base="$900"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Trailer systems</td><td class="bench-cell" data-con="$625" data-base="$390"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+      <tr class="subrow"><td>Oil</td><td class="bench-cell" data-con="$170" data-base="$105"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td>—</td></tr>
+    </tbody>
+    <tbody>
+      <tr class="group-hdr"><td colspan="5">Quality & fix rates</td></tr>
+      <tr><td class="metric-name">First time fix rate (in-house)</td><td class="bench-cell" data-con="80%" data-base="92%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">First time fix rate (outsourced)</td><td class="bench-cell" data-con="72%" data-base="86%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Repeat repair rate (in-house)</td><td class="bench-cell" data-con="18%" data-base="8%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Repeat repair rate (outsourced)</td><td class="bench-cell" data-con="25%" data-base="13%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ CAPITAL PLANNING ══ -->
+<div id="tab-capital" class="section-panel">
+  <div class="callout">
+    <strong>Priority 4 — End with this for financial stakeholders.</strong>
+    <span>Depreciation period: 9 years (confirmed) · Fixed cost/unit: $3,500–$5,000/yr · Fleet replacement rate: ~10%/yr</span>
+  </div>
+  <div class="summary-bar">
+    <div class="stitle">High-level summary</div>
+    <div class="summary-grid">
+      <div class="sf"><label>Total fuel spend ($)</label><input type="text" placeholder="Enter"></div>
+      <div class="sf"><label>Avg. MPG</label><input type="text" placeholder="Enter"></div>
+      <div class="sf"><label>Avg. acquisition cost ($)</label><input type="text" placeholder="Enter"></div>
+      <div class="sf"><label>Avg. miles at disposal</label><input type="text" placeholder="Enter"></div>
+      <div class="sf"><label>Fleet replacement rate</label><input type="text" value="~10%/yr"></div>
+    </div>
+  </div>
+  <table class="metrics-table">
+    <thead><tr><th style="width:36%">Metric</th><th class="r" style="width:18%">Industry benchmark</th><th class="r" style="width:15%">ODFL actual</th><th class="r" style="width:11%">Unit</th><th class="r" style="width:10%">Status</th></tr></thead>
+    <tbody>
+      <tr class="group-hdr"><td colspan="5">Vehicle lifecycle</td></tr>
+      <tr><td class="metric-name">Miles/year (avg. per unit)</td><td class="bench-cell" data-con="85,000" data-base="120,000"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">miles</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Cost/mile — year 1</td><td class="bench-cell" data-con="$0.26" data-base="$0.19"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/mi</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Cost/mile — year 2–X</td><td class="bench-cell" data-con="$0.20" data-base="$0.14"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/mi</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Cost/mile — final year</td><td class="bench-cell" data-con="$0.34" data-base="$0.24"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/mi</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Total cost/mile (lifecycle avg.)</td><td class="bench-cell" data-con="$0.23" data-base="$0.16"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/mi</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Avg. acquisition cost</td><td class="bench-cell" data-con="$160,000" data-base="$210,000"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Avg. age at disposal</td><td class="bench-cell" data-con="5 years" data-base="9 years"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">years</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Asset depreciation period</td><td class="bench-cell" data-con="6 years" data-base="9 years"></td><td class="odfl-cell"><input type="text" value="9 years" class="override" oninput="markOverride(this)"></td><td class="bench-cell">years</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Avg. miles at disposal</td><td class="bench-cell" data-con="600,000" data-base="900,000"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">miles</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Avg. remarketing expense</td><td class="bench-cell" data-con="$3,500" data-base="$2,000"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Avg. remarketing proceeds</td><td class="bench-cell" data-con="$20,000" data-base="$35,000"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Fixed cost per unit per year</td><td class="bench-cell" data-con="$5,500" data-base="$3,000"></td><td class="odfl-cell"><input type="text" value="$3,500–$5,000" class="override" oninput="markOverride(this)"></td><td class="bench-cell">$/unit/yr</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr class="group-hdr"><td colspan="5">Fuel</td></tr>
+      <tr><td class="metric-name">Avg. miles/gallon (fleet avg.)</td><td class="bench-cell" data-con="6.2 mpg" data-base="8.0 mpg"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">mpg</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Total fuel spend</td><td class="bench-cell" data-con="—" data-base="—"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td class="note-cell">—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ DOWNTIME & AVAILABILITY ══ -->
+<div id="tab-downtime" class="section-panel">
+  <div class="callout">
+    <strong>Value driver: fleet right-sizing, not lost revenue.</strong>
+    <span>Current KPI: 90% availability (10% downtime) · Power target: 3–5% · Trailers: 8–10% · Industry avg: 8.7% · Cost = carrying cost ($250–$600/day), NOT lost revenue · ~1,000 units already removed · Fixed cost: $3,500–$5,000/unit/yr</span>
+  </div>
+  <div class="summary-bar">
+    <div class="stitle">High-level summary</div>
+    <div class="summary-grid">
+      <div class="sf"><label>Current fleet availability (%)</label><input type="text" value="90%"></div>
+      <div class="sf"><label>Current downtime — power (%)</label><input type="text" value="10%"></div>
+      <div class="sf"><label>Current downtime — trailers (%)</label><input type="text" value="10%"></div>
+      <div class="sf"><label>Target downtime — power (%)</label><input type="text" value="3–5%"></div>
+      <div class="sf"><label>Spare ratio (excess capacity)</label><input type="text" value="~20%"></div>
+      <div class="sf"><label>Cost/downtime day (carrying cost)</label><input type="text" value="$250–$600"></div>
+      <div class="sf"><label>Units removed from fleet (to date)</label><input type="text" value="~1,000"></div>
+    </div>
+  </div>
+  <table class="metrics-table">
+    <thead><tr><th style="width:36%">Metric</th><th class="r" style="width:18%">Industry benchmark</th><th class="r" style="width:15%">ODFL actual</th><th class="r" style="width:11%">Unit</th><th class="r" style="width:10%">Status</th></tr></thead>
+    <tbody>
+      <tr class="group-hdr"><td colspan="5">Availability & downtime</td></tr>
+      <tr><td class="metric-name">Fleet availability KPI (scorecard)</td><td class="bench-cell" data-con="88%" data-base="95%"></td><td class="odfl-cell"><input type="text" value="90%" class="override"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Current downtime rate — power units</td><td class="bench-cell" data-con="12%" data-base="6%"></td><td class="odfl-cell"><input type="text" value="10%" class="override"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Current downtime rate — trailers</td><td class="bench-cell" data-con="14%" data-base="7%"></td><td class="odfl-cell"><input type="text" value="10%" class="override"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Best-in-class downtime — power units</td><td class="bench-cell" data-con="4%" data-base="2%"></td><td class="odfl-cell"><input type="text" value="3–5%" class="override"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Dan's target</td></tr>
+      <tr><td class="metric-name">Target downtime — trailers</td><td class="bench-cell" data-con="9%" data-base="5%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Unplanned downtime days per asset/yr</td><td class="bench-cell" data-con="44 days" data-base="22 days"></td><td class="odfl-cell"><input type="text" value="36.5 days" class="override"></td><td class="bench-cell">days/asset</td><td class="note-cell confirmed">At 10%</td></tr>
+      <tr class="group-hdr"><td colspan="5">Spare stock & carrying cost</td></tr>
+      <tr><td class="metric-name">Current spare ratio (excess capacity)</td><td class="bench-cell" data-con="18%" data-base="8%"></td><td class="odfl-cell"><input type="text" value="~20%" class="override"></td><td class="bench-cell">%</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Cost per downtime day (carrying cost basis)</td><td class="bench-cell" data-con="$600" data-base="$250"></td><td class="odfl-cell"><input type="text" value="$250–$600" class="override"></td><td class="bench-cell">$/day/unit</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Fixed cost per unit per year</td><td class="bench-cell" data-con="$5,500" data-base="$3,000"></td><td class="odfl-cell"><input type="text" value="$3,500–$5,000" class="override"></td><td class="bench-cell">$/unit/yr</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Units removed from fleet (to date)</td><td class="bench-cell" data-con="—" data-base="—"></td><td class="odfl-cell"><input type="text" value="~1,000" class="override"></td><td class="bench-cell">#</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr><td class="metric-name">Savings from fleet reduction (annual)</td><td class="bench-cell" data-con="—" data-base="—"></td><td class="odfl-cell"><input type="text" value="$3.5–5M" class="override"></td><td class="bench-cell">$</td><td class="note-cell confirmed">Confirmed</td></tr>
+      <tr class="group-hdr"><td colspan="5">Breakdown & roadside events</td></tr>
+      <tr><td class="metric-name">Roadside breakdowns (annual count)</td><td class="bench-cell" data-con="4 / 100 assets" data-base="2 / 100 assets"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Avg. roadside breakdown cost</td><td class="bench-cell" data-con="$1,600" data-base="$900"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/event</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Breakdown reduction target (proactive maint.)</td><td class="bench-cell" data-con="15%" data-base="30%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr class="group-hdr"><td colspan="5">Fleet right-sizing — primary value driver</td></tr>
+      <tr><td class="metric-name">Additional units removable if availability hits target</td><td class="bench-cell" data-con="—" data-base="—"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Annualized savings from right-sizing</td><td class="bench-cell" data-con="—" data-base="—"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Remarketing proceeds from disposed units</td><td class="bench-cell" data-con="$20,000/unit" data-base="$35,000/unit"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td class="note-cell">—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ══ SAP CONVERSION ══ -->
+<div id="tab-sap" class="section-panel">
+  <div class="callout">
+    <strong>SAP Conversion — administrative time, compliance, and data entry savings.</strong>
+    <span>Enter ODFL actuals when available. Industry benchmarks pre-loaded with conservative and base ranges.</span>
+  </div>
+  <div class="summary-bar">
+    <div class="stitle">High-level summary</div>
+    <div class="summary-grid">
+      <div class="sf"><label>Admin hourly rate ($)</label><input type="text" placeholder="e.g. $22.00"></div>
+      <div class="sf"><label>IT hourly rate ($)</label><input type="text" placeholder="e.g. $65.00"></div>
+      <div class="sf"><label>SAP development costs ($)</label><input type="text" placeholder="Enter"></div>
+      <div class="sf"><label>Annual SAP maintenance costs ($)</label><input type="text" placeholder="Enter"></div>
+      <div class="sf"><label>DVIR compliance (%)</label><input type="text" placeholder="Enter"></div>
+    </div>
+  </div>
+  <table class="metrics-table">
+    <thead><tr><th style="width:36%">Metric</th><th class="r" style="width:18%">Industry benchmark</th><th class="r" style="width:15%">ODFL actual</th><th class="r" style="width:11%">Unit</th><th class="r" style="width:10%">Status</th></tr></thead>
+    <tbody>
+      <tr class="group-hdr"><td colspan="5">DVIR</td></tr>
+      <tr><td class="metric-name">DVIRs processed (monthly)</td><td class="bench-cell" data-con="—" data-base="—"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/mo</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Driver DVIR completion time</td><td class="bench-cell" data-con="12 min" data-base="6 min"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">min</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">DVIR compliance (% completed)</td><td class="bench-cell" data-con="88%" data-base="98%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">DVIRs with safety defects</td><td class="bench-cell" data-con="5%" data-base="2.5%"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">%</td><td class="note-cell">—</td></tr>
+      <tr class="group-hdr"><td colspan="5">Data entry hours</td></tr>
+      <tr><td class="metric-name">Data entry hours — admins</td><td class="bench-cell" data-con="80 hrs/mo" data-base="40 hrs/mo"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">hrs/mo</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Data entry hours — techs</td><td class="bench-cell" data-con="30 hrs/mo" data-base="15 hrs/mo"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">hrs/mo</td><td class="note-cell">—</td></tr>
+      <tr class="group-hdr"><td colspan="5">Invoice & work order processing</td></tr>
+      <tr><td class="metric-name">Invoice entry — time per invoice</td><td class="bench-cell" data-con="18 min" data-base="8 min"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">min</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Invoice entry — volume (monthly)</td><td class="bench-cell" data-con="—" data-base="—"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/mo</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">PM schedule creation & updates</td><td class="bench-cell" data-con="20 hrs/mo" data-base="8 hrs/mo"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">hrs/mo</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Work order creation time</td><td class="bench-cell" data-con="22 min" data-base="10 min"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">min/WO</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Avg. time of approval</td><td class="bench-cell" data-con="6 hrs" data-base="2.5 hrs"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">hrs</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Approval time cost (driver + admin + exec)</td><td class="bench-cell" data-con="$180" data-base="$80"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/approval</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Repair verification & closeout time</td><td class="bench-cell" data-con="30 min" data-base="12 min"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">min</td><td class="note-cell">—</td></tr>
+      <tr class="group-hdr"><td colspan="5">Asset lifecycle & declined repairs</td></tr>
+      <tr><td class="metric-name">Retiring assets — time per asset</td><td class="bench-cell" data-con="4 hrs" data-base="1.5 hrs"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">hrs</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Declined repairs — in-house (count)</td><td class="bench-cell" data-con="8% of WOs" data-base="3% of WOs"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Declined repairs — outsourced (count)</td><td class="bench-cell" data-con="12% of WOs" data-base="5% of WOs"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">#/yr</td><td class="note-cell">—</td></tr>
+      <tr class="group-hdr"><td colspan="5">Reporting & system costs</td></tr>
+      <tr><td class="metric-name">Custom report creation time</td><td class="bench-cell" data-con="6 hrs" data-base="2 hrs"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">hrs/report</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">Admin hourly rate</td><td class="bench-cell" data-con="$18.00" data-base="$26.00"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/hr</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">IT hourly rate</td><td class="bench-cell" data-con="$55.00" data-base="$75.00"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/hr</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">SAP development costs</td><td class="bench-cell" data-con="$400K" data-base="$800K"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$</td><td class="note-cell">—</td></tr>
+      <tr><td class="metric-name">SAP maintenance costs (annual)</td><td class="bench-cell" data-con="$80K" data-base="$160K"></td><td class="odfl-cell"><input type="text" placeholder="Enter" oninput="markOverride(this)"></td><td class="bench-cell">$/yr</td><td class="note-cell">—</td></tr>
+    </tbody>
+  </table>
+</div>
+
+</div><!-- /con -->
+
+<div class="foot">
+  For discussion purposes only &nbsp;·&nbsp; Samsara Connected Asset Management &nbsp;·&nbsp; Old Dominion Freight Line &nbsp;·&nbsp; Confidential<br/>
+  Sources: Discovery call Apr 2, 2026 · ATA Fleet Benchmarks · FleetOwner Industry Data · Samsara customer data &nbsp;·&nbsp; &copy; Samsara Inc. 2026
+</div>
+
+<script>
+let scenario = 'conservative';
+
+function setScenario(sc) {
+  scenario = sc;
+  document.getElementById('pill-con').classList.toggle('on', sc === 'conservative');
+  document.getElementById('pill-base').classList.toggle('on', sc === 'base');
+  document.getElementById('sc-desc').textContent = sc === 'conservative'
+    ? 'Lower-bound benchmark — cautious view of industry performance'
+    : 'Average benchmark — typical performance across similar fleets';
+  renderBenchmarks();
+}
+
+function renderBenchmarks() {
+  document.querySelectorAll('.bench-cell[data-con]').forEach(cell => {
+    const con = cell.getAttribute('data-con');
+    const base = cell.getAttribute('data-base');
+    if (!con && !base) { cell.innerHTML = '—'; return; }
+    const active = scenario === 'conservative' ? con : base;
+    const other = scenario === 'conservative' ? base : con;
+    const otherLabel = scenario === 'conservative' ? 'Base' : 'Con';
+    if (con === '—' && base === '—') { cell.innerHTML = '<span class="bench-val">—</span>'; return; }
+    cell.innerHTML = `<div class="bench-val">${active}</div><div class="bench-range"><span class="${scenario==='conservative'?'bench-con':'bench-base'}">${otherLabel}: ${other}</span></div>`;
+  });
+}
+
+function showTab(id, btn) {
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tb').forEach(t => t.classList.remove('on'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('on');
+}
+
+function markOverride(el) {
+  el.value.trim() ? el.classList.add('override') : el.classList.remove('override');
+}
+
+function toggleGroup(id, row) {
+  document.getElementById(id).classList.toggle('open');
+  row.classList.toggle('open');
+}
+
+function expandAll() {
+  document.querySelectorAll('.collapse-wrap').forEach(w => w.classList.add('open'));
+  document.querySelectorAll('.toggle-row').forEach(r => r.classList.add('open'));
+}
+
+function collapseAll() {
+  document.querySelectorAll('.collapse-wrap').forEach(w => w.classList.remove('open'));
+  document.querySelectorAll('.toggle-row').forEach(r => r.classList.remove('open'));
+}
+
+function syncHL(key, val) {
+  const d = document.getElementById('m_' + key);
+  if (d && !d.classList.contains('override')) d.value = val;
+}
+
+function syncDetail(key, val) {
+  const h = document.getElementById('hl_' + key);
+  if (h) h.value = val;
+}
+
+function updateFleet() {
+  const t = parseFloat(document.getElementById('fl_tractors').value) || 0;
+  const s = parseFloat(document.getElementById('fl_switchers').value) || 0;
+  const tr = parseFloat(document.getElementById('fl_trailers').value) || 0;
+  const tc = parseFloat(document.getElementById('fl_techs').value) || 0;
+  const powered = t + s;
+  const total = powered + tr;
+  document.getElementById('total_powered').textContent = powered > 0 ? powered.toLocaleString() : '—';
+  document.getElementById('total_assets').textContent = total > 0 ? total.toLocaleString() : '—';
+  document.getElementById('total_techs').textContent = tc > 0 ? tc.toLocaleString() : '—';
+  document.getElementById('assets_per_tech').textContent = (total > 0 && tc > 0) ? (total / tc).toFixed(1) : '—';
+}
+
+// Initialize
+renderBenchmarks();
+</script>
+</body>
+</html>
